@@ -680,165 +680,236 @@
     </div>
 
     <script>
-        // ── Password strength meter
-        const strengthColors = ['#ef4444', '#f97316', '#eab308', '#10b981'];
-        const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
+const API_BASE = "https://api.vaultdb.live";
 
-        document.getElementById('password').addEventListener('input', function () {
-            const v = this.value;
-            let score = 0;
-            if (v.length >= 8) score++;
-            if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
-            if (/\d/.test(v)) score++;
-            if (/[^A-Za-z0-9]/.test(v)) score++;
+// ---------------- Password Strength ----------------
+const strengthColors = ['#ef4444', '#f97316', '#eab308', '#10b981'];
+const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
 
-            for (let i = 1; i <= 4; i++) {
-                const seg = document.getElementById('s' + i);
-                seg.style.background = i <= score ? strengthColors[score - 1] : 'var(--border)';
-            }
+document.getElementById('password').addEventListener('input', function () {
+    const v = this.value;
+    let score = 0;
 
-            const label = document.getElementById('strengthLabel');
-            label.textContent = v ? (strengthLabels[score - 1] || '') : '';
-            label.style.color = v ? strengthColors[score - 1] : 'var(--text-muted)';
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
 
-            if (this.classList.contains('has-error') && v.length >= 8) clearError('password');
-        });
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById('s' + i).style.background =
+            i <= score ? strengthColors[score - 1] : 'var(--border)';
+    }
 
-        // ── Show/hide password toggle (works for both fields)
-        document.querySelectorAll('.toggle-pw').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const targetId = btn.dataset.target;
-                const input = document.getElementById(targetId);
-                const isHidden = input.type === 'password';
-                input.type = isHidden ? 'text' : 'password';
+    const label = document.getElementById('strengthLabel');
+    label.textContent = v ? (strengthLabels[score - 1] || '') : '';
+    label.style.color = v ? strengthColors[score - 1] : 'var(--text-muted)';
+});
 
-                const eyeIcon = document.getElementById('eye-' + targetId);
-                eyeIcon.innerHTML = isHidden
-                    ? `<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/>`
-                    : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>`;
+// ---------------- Helpers ----------------
+function showError(id, msg) {
+    const input = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+
+    if (input) input.classList.add('has-error');
+
+    if (err) {
+        err.classList.add('show');
+        err.lastChild.textContent = " " + msg;
+    }
+}
+
+function clearError(id) {
+    const input = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+
+    if (input) input.classList.remove('has-error');
+    if (err) err.classList.remove('show');
+}
+
+['fullName', 'email', 'password'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => clearError(id));
+});
+
+// ---------------- OTP Popup ----------------
+function showOtpPopup(email) {
+    const popup = document.createElement("div");
+
+    popup.innerHTML = `
+        <div id="otpModal" style="
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
+        ">
+            <div style="
+                width:100%;
+                max-width:420px;
+                background:#fff;
+                border-radius:14px;
+                padding:28px;
+                box-shadow:0 20px 60px rgba(0,0,0,.15);
+                font-family:DM Sans,sans-serif;
+            ">
+                <h2 style="font-size:24px;margin-bottom:8px;">Verify OTP</h2>
+                <p style="font-size:14px;color:#6b7280;margin-bottom:20px;">
+                    Enter the OTP sent to <b>${email}</b>
+                </p>
+
+                <input
+                    type="text"
+                    id="otpInput"
+                    maxlength="6"
+                    placeholder="Enter 6 digit OTP"
+                    style="
+                        width:100%;
+                        height:44px;
+                        padding:0 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:8px;
+                        font-size:15px;
+                        margin-bottom:14px;
+                    "
+                >
+
+                <button
+                    id="verifyOtpBtn"
+                    style="
+                        width:100%;
+                        height:44px;
+                        border:none;
+                        border-radius:8px;
+                        background:#4f6ef7;
+                        color:#fff;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    Verify & Create Account
+                </button>
+
+                <p id="otpMsg" style="
+                    margin-top:12px;
+                    font-size:13px;
+                    text-align:center;
+                    color:#ef4444;
+                "></p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    document.getElementById("verifyOtpBtn").onclick = async () => {
+        const otp = document.getElementById("otpInput").value.trim();
+        const msg = document.getElementById("otpMsg");
+
+        if (otp.length !== 6) {
+            msg.textContent = "Enter valid 6 digit OTP";
+            return;
+        }
+
+        try {
+            const res = await fetch(API_BASE + "/auth/verify-registration-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    otp: otp
+                })
             });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                msg.textContent = data.detail || "Invalid OTP";
+                return;
+            }
+
+            // Save token if returned
+            if (data.access_token) {
+                localStorage.setItem("token", data.access_token);
+            }
+
+            msg.style.color = "#10b981";
+            msg.textContent = "Account verified successfully!";
+
+            setTimeout(() => {
+                window.location.href = "signin.html";
+            }, 1200);
+
+        } catch (err) {
+            msg.textContent = "Verification failed";
+        }
+    };
+}
+
+// ---------------- Signup Submit ----------------
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    let valid = true;
+
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!fullName) {
+        showError("fullName", "Full name is required.");
+        valid = false;
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError("email", "Enter valid email.");
+        valid = false;
+    }
+
+    if (password.length < 8) {
+        showError("password", "Minimum 8 characters.");
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.classList.add("loading");
+
+    try {
+        const res = await fetch(API_BASE + "/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                name: fullName
+            })
         });
 
-        // ── Validation helpers
-        function showError(id, msg) {
-            const input = document.getElementById(id);
-            const err = document.getElementById('err-' + id);
-            if (input) input.classList.add('has-error');
-            if (err) {
-                if (msg) {
-                    // Replace the last text node with the message
-                    const nodes = err.childNodes;
-                    for (let i = nodes.length - 1; i >= 0; i--) {
-                        if (nodes[i].nodeType === Node.TEXT_NODE) {
-                            nodes[i].textContent = ' ' + msg;
-                            break;
-                        }
-                    }
-                }
-                err.classList.add('show');
-            }
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.detail || "Registration failed");
+            return;
         }
 
-        function clearError(id) {
-            const input = document.getElementById(id);
-            const err = document.getElementById('err-' + id);
-            if (input) input.classList.remove('has-error');
-            if (err) err.classList.remove('show');
-        }
+        // OTP popup open
+        showOtpPopup(email);
 
-        // ── Live clear on input for all fields
-        ['fullName', 'email', 'password'].forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('input', () => clearError(id));
-        });
-
-        // ── Form submit → POST to FastAPI /auth/register
-        document.getElementById('signupForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            let valid = true;
-
-            const fullName = document.getElementById('fullName').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-
-            if (!fullName) {
-                showError('fullName', 'Full name is required.');
-                valid = false;
-            }
-
-            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-                showError('email', 'Enter a valid email address.');
-                valid = false;
-            }
-
-            if (password.length < 8) {
-                showError('password', 'Password must be at least 8 characters.');
-                valid = false;
-            }
-
-            if (!valid) return;
-
-            const btn = document.getElementById('submitBtn');
-            btn.classList.add('loading');
-            btn.disabled = true;
-
-            try {
-                const response = await fetch("https://api.vaultdb.live/auth/register", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        email: email,
-                        password: password,
-                        name: fullName
-                    })
-                });
-
-                const data = await response.json();
-
-                // ❌ Handle error response
-                if (!response.ok) {
-                    let message = "Registration failed";
-
-                    if (data.detail || data.error) {
-                        if (Array.isArray(data.detail)) {
-                            message = data.detail[0].msg;
-                        } else {
-                            message = data.detail || data.error;
-                        }
-                    }
-
-                    // Show error properly
-                    if (message.toLowerCase().includes('email')) {
-                        showError('email', message);
-                    } else {
-                        alert(message);
-                    }
-
-                    return;
-                }
-
-                // ✅ SUCCESS FLOW
-                if (data.access_token) {
-                    localStorage.setItem("token", data.access_token);
-                }
-
-                document.getElementById('successOverlay').classList.add('show');
-
-                setTimeout(() => {
-                    window.location.href = "/signin.html";
-                }, 1500);
-
-            } catch (error) {
-                alert(error.message || "Something went wrong. Please try again.");
-            } finally {
-                btn.classList.remove('loading');
-                btn.disabled = false;
-            }
-        });
-    </script>
+    } catch (err) {
+        alert("Server error");
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove("loading");
+    }
+});
+</script>
 </body>
 
 </html>
