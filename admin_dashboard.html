@@ -5798,7 +5798,6 @@ async function renderBackupStep() {
         );
 
         const data = await res.json();
-        console.log("BACKUPS API:", data);
 
         const list = data.items || data.data || data.results || data || [];
 
@@ -5811,45 +5810,62 @@ async function renderBackupStep() {
             return;
         }
 
-       list.forEach((backup, index) => {
+        let found = 0;
 
-    const backupId =
-        backup.document_id ||
-        backup.id ||
-        backup._id ||
-        index + 1;
+        list.forEach((backup, index) => {
 
-    const linkedDbId =
-        backup.database_id ||
-        backup.db_id ||
-        backup.database_document_id ||
-        backup.db_document_id ||
-        backup.databaseId ||
-        (backup.database ? backup.database.document_id : "") ||
-        (backup.database ? backup.database.id : "");
+            const backupId =
+                backup.backup_id ||
+                backup.document_id ||
+                backup.id ||
+                backup._id ||
+                index + 1;
 
-    if (String(linkedDbId) !== String(selectedDatabaseId)) {
-        return;
-    }
+            const linkedDbId =
+                backup.database_id ||
+                backup.db_id ||
+                backup.database_document_id ||
+                backup.db_document_id ||
+                backup.databaseId ||
+                backup.document_database_id ||
+                (backup.database ? backup.database.document_id : "") ||
+                (backup.database ? backup.database.id : "");
 
-    const fileName =
-        backup.file_name ||
-        backup.filename ||
-        backup.name ||
-        backup.backup_name ||
-        `Backup ${index + 1}`;
+            /* match selected database */
+            if (String(linkedDbId) !== String(selectedDatabaseId)) {
+                return;
+            }
 
-    const created =
-        backup.created_at ||
-        backup.date ||
-        "";
+            found++;
 
-    select.innerHTML += `
-        <option value="${backupId}">
-            ${fileName} ${created ? "- " + created : ""}
-        </option>
-    `;
-});
+            const fileName =
+                backup.file_name ||
+                backup.filename ||
+                backup.name ||
+                backup.backup_name ||
+                `Backup ${backupId}`;
+
+            const created =
+                backup.created_at ||
+                backup.created ||
+                backup.date ||
+                "";
+
+            select.innerHTML += `
+                <option value="${backupId}">
+                    ${fileName} ${created ? "- " + created : ""}
+                </option>
+            `;
+        });
+
+        if (found === 0) {
+            select.innerHTML = `<option value="">No backups for selected database</option>`;
+        }
+
+        /* save selected backup */
+        select.addEventListener("change", function () {
+            selectedBackupId = this.value;
+        });
 
     } catch (error) {
         box.innerHTML = `
