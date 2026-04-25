@@ -4598,27 +4598,16 @@ function restoreBackup(id) {
 }
 
 function loadLoggedInUser() {
-    const savedUser = localStorage.getItem("user");
-    const token = localStorage.getItem("token");
+    const savedName = localStorage.getItem("name");
+    const savedEmail = localStorage.getItem("email");
 
-    if (!savedUser && !token) return;
+    const fullName =
+        savedName ||
+        (savedEmail ? savedEmail.split("@")[0] : "User");
 
-    let fullName = "User";
-
-    try {
-        if (savedUser) {
-            const user = JSON.parse(savedUser);
-
-            fullName =
-                user.full_name ||
-                user.name ||
-                user.username ||
-                user.email?.split("@")[0] ||
-                "User";
-        }
-    } catch (err) {
-        console.log("Invalid user data");
-    }
+    /* TOP RIGHT */
+    const topbarName = document.querySelector(".topbar-name");
+    if (topbarName) topbarName.textContent = fullName;
 
     /* LEFT BOTTOM */
     const sidebarName = document.getElementById("sidebarUserName");
@@ -4626,14 +4615,8 @@ function loadLoggedInUser() {
 
     if (sidebarName) sidebarName.textContent = fullName;
     if (sidebarEmail) sidebarEmail.textContent = "Admin";
-
-    /* TOP RIGHT */
-    const topbarName = document.querySelector(".topbar-name");
-
-    if (topbarName) topbarName.textContent = fullName;
 }
 
-/* Run after full page loaded */
 window.addEventListener("load", loadLoggedInUser);
 /* ===============================
    LOAD ALL DATABASES (ADMIN)
