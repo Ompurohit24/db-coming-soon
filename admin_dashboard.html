@@ -5700,7 +5700,112 @@ async function renderDatabaseStep() {
     }
 }
 
-async function renderBackupStep() {
+// async function renderBackupStep() {
+//     const box = document.getElementById("restoreStepContent");
+//     if (!box) return;
+
+//     box.innerHTML = `
+//         <div class="restore-step-title">Select Backup</div>
+//         <div class="restore-step-desc">Choose backup to restore</div>
+
+//         <label class="restore-db-label">Backup</label>
+
+//         <select id="restoreBackupSelect" class="restore-db-select">
+//             <option value="">Loading backups...</option>
+//         </select>
+//     `;
+
+//     try {
+//         const res = await fetch(
+//             API_BASE + "/admin/backups?limit=100&offset=0",
+//             { headers: getHeaders() }
+//         );
+
+//         const data = await res.json();
+
+//         const list = data.items || data.data || data.results || data || [];
+
+//         const select = document.getElementById("restoreBackupSelect");
+
+//         select.innerHTML = `<option value="">Choose backup</option>`;
+
+//         if (!list.length) {
+//             select.innerHTML = `<option value="">No backups found</option>`;
+//             return;
+//         }
+
+//         let found = 0;
+
+//         list.forEach((backup, index) => {
+
+//             const backupId =
+//                 backup.backup_id ||
+//                 backup.document_id ||
+//                 backup.id ||
+//                 backup._id ||
+//                 index + 1;
+
+//             let linkedDbId = "";
+
+// if (backup.database && typeof backup.database === "object") {
+//     linkedDbId =
+//         backup.database.document_id ||
+//         backup.database.id ||
+//         "";
+// } else {
+//     linkedDbId =
+//         backup.database_id ||
+//         backup.db_id ||
+//         backup.database_document_id ||
+//         backup.db_document_id ||
+//         backup.databaseId ||
+//         "";
+// }
+
+// if (String(linkedDbId).trim() !== String(selectedDatabaseId).trim()) {
+//     return;
+// }
+
+//             found++;
+
+//             const fileName =
+//                 backup.file_name ||
+//                 backup.filename ||
+//                 backup.name ||
+//                 backup.backup_name ||
+//                 `Backup ${backupId}`;
+
+//             const created =
+//                 backup.created_at ||
+//                 backup.created ||
+//                 backup.date ||
+//                 "";
+
+//             select.innerHTML += `
+//                 <option value="${backupId}">
+//                     ${fileName} ${created ? "- " + created : ""}
+//                 </option>
+//             `;
+//         });
+
+//         if (found === 0) {
+//             select.innerHTML = `<option value="">No backups for selected database</option>`;
+//         }
+
+//         /* save selected backup */
+//         select.addEventListener("change", function () {
+//             selectedBackupId = this.value;
+//         });
+
+//     } catch (error) {
+//         box.innerHTML = `
+//             <div class="restore-empty">
+//                 Failed to load backups
+//             </div>
+//         `;
+//     }
+// }   
+async function renderBackupStep(selectedDatabaseId) {
     const box = document.getElementById("restoreStepContent");
     if (!box) return;
 
@@ -5716,25 +5821,34 @@ async function renderBackupStep() {
     `;
 
     try {
+        /* Selected DB specific backups */
         const res = await fetch(
-            API_BASE + "/admin/backups?limit=100&offset=0",
-            { headers: getHeaders() }
+            API_BASE + "/databases/" + selectedDatabaseId + "/backups?limit=100&offset=0",
+            {
+                method: "GET",
+                headers: getHeaders()
+            }
         );
 
         const data = await res.json();
 
-        const list = data.items || data.data || data.results || data || [];
+        const list =
+            data.items ||
+            data.backups ||
+            data.data ||
+            data.results ||
+            data ||
+            [];
 
         const select = document.getElementById("restoreBackupSelect");
 
         select.innerHTML = `<option value="">Choose backup</option>`;
 
         if (!list.length) {
-            select.innerHTML = `<option value="">No backups found</option>`;
+            select.innerHTML =
+                `<option value="">No backups for selected database</option>`;
             return;
         }
-
-        let found = 0;
 
         list.forEach((backup, index) => {
 
@@ -5744,29 +5858,6 @@ async function renderBackupStep() {
                 backup.id ||
                 backup._id ||
                 index + 1;
-
-            let linkedDbId = "";
-
-if (backup.database && typeof backup.database === "object") {
-    linkedDbId =
-        backup.database.document_id ||
-        backup.database.id ||
-        "";
-} else {
-    linkedDbId =
-        backup.database_id ||
-        backup.db_id ||
-        backup.database_document_id ||
-        backup.db_document_id ||
-        backup.databaseId ||
-        "";
-}
-
-if (String(linkedDbId).trim() !== String(selectedDatabaseId).trim()) {
-    return;
-}
-
-            found++;
 
             const fileName =
                 backup.file_name ||
@@ -5788,13 +5879,11 @@ if (String(linkedDbId).trim() !== String(selectedDatabaseId).trim()) {
             `;
         });
 
-        if (found === 0) {
-            select.innerHTML = `<option value="">No backups for selected database</option>`;
-        }
-
         /* save selected backup */
         select.addEventListener("change", function () {
             selectedBackupId = this.value;
+            selectedBackupText =
+                this.options[this.selectedIndex].text;
         });
 
     } catch (error) {
