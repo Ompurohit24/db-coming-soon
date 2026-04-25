@@ -4597,7 +4597,38 @@ function restoreBackup(id) {
     window.location.href = "restore.html?id=" + id;
 }
 
+function loadLoggedInUser() {
+    const savedUser = localStorage.getItem("user");
 
+    if (!savedUser) return;
+
+    try {
+        const user = JSON.parse(savedUser);
+
+        const fullName =
+            user.full_name ||
+            user.name ||
+            user.username ||
+            "User";
+
+        /* LEFT BOTTOM SIDEBAR */
+        const sidebarName = document.getElementById("sidebarUserName");
+        const sidebarEmail = document.getElementById("sidebarUserEmail");
+
+        if (sidebarName) sidebarName.textContent = fullName;
+        if (sidebarEmail) sidebarEmail.textContent = "Admin";
+
+        /* TOP RIGHT */
+        const topbarName = document.querySelector(".topbar-name");
+
+        if (topbarName) topbarName.textContent = fullName;
+
+    } catch (err) {
+        console.log("Invalid user data");
+    }
+}
+
+document.addEventListener("DOMContentLoaded", loadLoggedInUser);
 /* ===============================
    LOAD ALL DATABASES (ADMIN)
 =================================*/
@@ -5791,33 +5822,45 @@ async function renderBackupStep() {
             return;
         }
 
-        list.forEach((backup, index) => {
+       list.forEach((backup, index) => {
 
-            const backupId =
-                backup.document_id ||
-                backup.id ||
-                backup._id ||
-                index + 1;
+    const backupId =
+        backup.document_id ||
+        backup.id ||
+        backup._id ||
+        index + 1;
 
-            const fileName =
-                backup.file_name ||
-                backup.filename ||
-                backup.name ||
-                backup.backup_name ||
-                `Backup ${index + 1}`;
+    const linkedDbId =
+        backup.database_id ||
+        backup.db_id ||
+        backup.database_document_id ||
+        backup.db_document_id ||
+        backup.databaseId ||
+        (backup.database ? backup.database.document_id : "") ||
+        (backup.database ? backup.database.id : "");
 
-            const created =
-                backup.created_at ||
-                backup.created ||
-                backup.date ||
-                "";
+    if (String(linkedDbId) !== String(selectedDatabaseId)) {
+        return;
+    }
 
-            select.innerHTML += `
-                <option value="${backupId}">
-                    ${fileName} ${created ? "- " + created : ""}
-                </option>
-            `;
-        });
+    const fileName =
+        backup.file_name ||
+        backup.filename ||
+        backup.name ||
+        backup.backup_name ||
+        `Backup ${index + 1}`;
+
+    const created =
+        backup.created_at ||
+        backup.date ||
+        "";
+
+    select.innerHTML += `
+        <option value="${backupId}">
+            ${fileName} ${created ? "- " + created : ""}
+        </option>
+    `;
+});
 
     } catch (error) {
         box.innerHTML = `
