@@ -5745,21 +5745,24 @@ async function renderBackupStep() {
                 backup._id ||
                 index + 1;
 
-            const linkedDbId =
-    backup.database?.document_id ||
-    backup.database?.id ||
-    backup.database_id ||
-    backup.db_id ||
-    backup.database_document_id ||
-    backup.db_document_id ||
-    backup.databaseId ||
-    backup.document_database_id ||
-    "";
+            let linkedDbId = "";
 
-console.log("Selected DB:", selectedDatabaseId);
-console.log("Backup DB:", linkedDbId, backup);
+if (backup.database && typeof backup.database === "object") {
+    linkedDbId =
+        backup.database.document_id ||
+        backup.database.id ||
+        "";
+} else {
+    linkedDbId =
+        backup.database_id ||
+        backup.db_id ||
+        backup.database_document_id ||
+        backup.db_document_id ||
+        backup.databaseId ||
+        "";
+}
 
-if (String(linkedDbId).trim() != String(selectedDatabaseId).trim()) {
+if (String(linkedDbId).trim() !== String(selectedDatabaseId).trim()) {
     return;
 }
 
