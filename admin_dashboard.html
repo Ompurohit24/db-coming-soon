@@ -4599,36 +4599,42 @@ function restoreBackup(id) {
 
 function loadLoggedInUser() {
     const savedUser = localStorage.getItem("user");
+    const token = localStorage.getItem("token");
 
-    if (!savedUser) return;
+    if (!savedUser && !token) return;
+
+    let fullName = "User";
 
     try {
-        const user = JSON.parse(savedUser);
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
 
-        const fullName =
-            user.full_name ||
-            user.name ||
-            user.username ||
-            "User";
-
-        /* LEFT BOTTOM SIDEBAR */
-        const sidebarName = document.getElementById("sidebarUserName");
-        const sidebarEmail = document.getElementById("sidebarUserEmail");
-
-        if (sidebarName) sidebarName.textContent = fullName;
-        if (sidebarEmail) sidebarEmail.textContent = "Admin";
-
-        /* TOP RIGHT */
-        const topbarName = document.querySelector(".topbar-name");
-
-        if (topbarName) topbarName.textContent = fullName;
-
+            fullName =
+                user.full_name ||
+                user.name ||
+                user.username ||
+                user.email?.split("@")[0] ||
+                "User";
+        }
     } catch (err) {
         console.log("Invalid user data");
     }
+
+    /* LEFT BOTTOM */
+    const sidebarName = document.getElementById("sidebarUserName");
+    const sidebarEmail = document.getElementById("sidebarUserEmail");
+
+    if (sidebarName) sidebarName.textContent = fullName;
+    if (sidebarEmail) sidebarEmail.textContent = "Admin";
+
+    /* TOP RIGHT */
+    const topbarName = document.querySelector(".topbar-name");
+
+    if (topbarName) topbarName.textContent = fullName;
 }
 
-document.addEventListener("DOMContentLoaded", loadLoggedInUser);
+/* Run after full page loaded */
+window.addEventListener("load", loadLoggedInUser);
 /* ===============================
    LOAD ALL DATABASES (ADMIN)
 =================================*/
