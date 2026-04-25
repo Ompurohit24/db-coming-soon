@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultDB – Smart Database Backup Utility</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Calistoga&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#FAFAFA;--fg:#0F172A;--muted:#F1F5F9;--muted-fg:#64748B;
+  --accent:#0052FF;--accent2:#4D7CFF;--border:#E2E8F0;--card:#FFFFFF;
+  --shadow-md:0 4px 6px rgba(0,0,0,0.07);--shadow-lg:0 10px 15px rgba(0,0,0,0.08);
+  --shadow-xl:0 20px 25px rgba(0,0,0,0.10);--shadow-accent:0 4px 14px rgba(0,82,255,0.25);
+  --shadow-accent-lg:0 8px 24px rgba(0,82,255,0.35);
+}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--fg);line-height:1.6;overflow-x:hidden}
+.grad{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grad-bg{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+
+/* NAVBAR */
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:0 2rem;height:64px;display:flex;align-items:center;justify-content:space-between;transition:all .3s;border-bottom:1px solid transparent}
+nav.scrolled{background:rgba(250,250,250,0.85);backdrop-filter:blur(16px);border-bottom-color:var(--border);box-shadow:0 1px 8px rgba(0,0,0,0.06)}
+.nav-logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;color:var(--fg);text-decoration:none}
+.nav-logo-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:var(--shadow-accent)}
+.nav-logo-icon svg{width:18px;height:18px}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{text-decoration:none;color:var(--muted-fg);font-size:.9rem;font-weight:500;transition:color .2s}
+.nav-links a:hover{color:var(--fg)}
+.nav-actions{display:flex;gap:.75rem;align-items:center}
+.btn-outline{padding:.5rem 1.25rem;border:1px solid var(--border);border-radius:10px;background:transparent;color:var(--fg);font-size:.875rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-outline:hover{border-color:rgba(0,82,255,.3);background:var(--muted);transform:translateY(-1px)}
+.btn-primary{padding:.5rem 1.25rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:.875rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;box-shadow:var(--shadow-accent)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-accent-lg);filter:brightness(1.08)}
+.btn-primary:active{transform:scale(.98)}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;align-items:center;padding:100px 2rem 80px;max-width:1200px;margin:0 auto;gap:4rem}
+.hero-left{flex:1.1;max-width:600px}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,82,255,.3);background:rgba(0,82,255,.05);padding:.45rem 1.1rem;border-radius:999px;margin-bottom:2rem}
+.badge-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.3);opacity:.7}}
+.badge-text{font-family:'JetBrains Mono',monospace;font-size:.7rem;text-transform:uppercase;letter-spacing:.15em;color:var(--accent)}
+.hero-headline{font-family:'Calistoga',Georgia,serif;font-size:clamp(2.8rem,5vw,5.25rem);line-height:1.05;letter-spacing:-.02em;color:var(--fg);margin-bottom:1.5rem}
+.hero-sub{font-size:1.1rem;color:var(--muted-fg);line-height:1.75;max-width:520px;margin-bottom:2.5rem}
+.hero-ctas{display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem}
+.btn-hero-primary{padding:.875rem 2rem;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;box-shadow:var(--shadow-accent);display:flex;align-items:center;gap:.5rem}
+.btn-hero-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-accent-lg);filter:brightness(1.1)}
+.btn-hero-outline{padding:.875rem 2rem;border-radius:12px;border:1px solid var(--border);background:transparent;color:var(--fg);font-size:1rem;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-hero-outline:hover{border-color:rgba(0,82,255,.3);background:var(--muted);transform:translateY(-1px)}
+.hero-trust{display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.85rem;color:var(--muted-fg)}
+.trust-item{display:flex;align-items:center;gap:.4rem}
+.trust-check{width:16px;height:16px;border-radius:50%;background:rgba(0,82,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.trust-check::after{content:'✓';font-size:.6rem;color:var(--accent);font-weight:700}
+
+/* HERO DASHBOARD */
+.hero-right{flex:.9;display:flex;justify-content:center;align-items:center}
+.dashboard{background:var(--card);border:1px solid var(--border);border-radius:20px;box-shadow:var(--shadow-xl),0 0 80px rgba(0,82,255,.08);padding:1.5rem;width:100%;max-width:440px;position:relative;animation:float 5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.dash-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.dash-title{font-size:.75rem;font-weight:600;color:var(--muted-fg);text-transform:uppercase;letter-spacing:.08em}
+.status-live{display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:600;color:#10b981}
+.live-dot{width:6px;height:6px;border-radius:50%;background:#10b981;animation:pulse 2s infinite}
+.dash-chart{margin-bottom:1.25rem}
+.chart-label{font-size:.7rem;color:var(--muted-fg);margin-bottom:.5rem}
+.chart-bars{display:flex;align-items:flex-end;gap:4px;height:60px}
+.bar{flex:1;border-radius:4px 4px 0 0;transition:all .3s}
+.bar.success{background:linear-gradient(180deg,var(--accent),var(--accent2))}
+.bar.warn{background:#f59e0b}
+.bar.fail{background:#ef4444}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.dash-card{background:var(--muted);border-radius:12px;padding:.875rem}
+.dash-card-label{font-size:.65rem;color:var(--muted-fg);font-weight:500;margin-bottom:.25rem}
+.dash-card-value{font-size:1.1rem;font-weight:700;color:var(--fg)}
+.dash-card-value.accent{background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.dash-restore{width:100%;padding:.75rem;border-radius:10px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:var(--shadow-accent);display:flex;align-items:center;justify-content:center;gap:.5rem}
+.dash-restore:hover{filter:brightness(1.1);transform:translateY(-1px)}
+.security-badge{position:absolute;bottom:-16px;right:24px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:.5rem .875rem;display:flex;align-items:center;gap:.5rem;box-shadow:var(--shadow-md);font-size:.75rem;font-weight:600;color:var(--fg)}
+.sec-icon{width:20px;height:20px;border-radius:6px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center}
+.sec-icon svg{width:12px;height:12px}
+
+/* TRUSTED BY */
+.trusted{padding:4rem 2rem;text-align:center;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.trusted-label{font-size:.8rem;color:var(--muted-fg);font-weight:500;margin-bottom:2rem;letter-spacing:.05em}
+.logos{display:flex;justify-content:center;align-items:center;gap:3rem;flex-wrap:wrap}
+.logo-item{font-size:.95rem;font-weight:700;color:var(--muted-fg);opacity:.5;letter-spacing:.03em;transition:opacity .2s}
+.logo-item:hover{opacity:.8}
+
+/* SECTIONS COMMON */
+.section{padding:6rem 2rem;max-width:1200px;margin:0 auto}
+.section-badge{display:inline-flex;align-items:center;gap:8px;border:1px solid rgba(0,82,255,.3);background:rgba(0,82,255,.05);padding:.4rem 1rem;border-radius:999px;margin-bottom:1.5rem}
+.section-headline{font-family:'Calistoga',Georgia,serif;font-size:clamp(2rem,3.5vw,3.25rem);line-height:1.15;color:var(--fg);margin-bottom:1rem}
+.section-sub{font-size:1.05rem;color:var(--muted-fg);max-width:540px;line-height:1.7}
+.text-center{text-align:center}.mx-auto{margin-left:auto;margin-right:auto}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:1.5rem;margin-top:4rem}
+.feature-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:all .3s;cursor:default;position:relative;overflow:hidden}
+.feature-card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(0,82,255,.03),transparent);opacity:0;transition:opacity .3s}
+.feature-card:hover{transform:translateY(-4px);box-shadow:var(--shadow-xl);border-color:rgba(0,82,255,.2)}
+.feature-card:hover::before{opacity:1}
+.feature-icon{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:var(--shadow-accent);transition:transform .3s}
+.feature-card:hover .feature-icon{transform:scale(1.1)}
+.feature-icon svg{width:22px;height:22px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.feature-title{font-size:1.05rem;font-weight:600;color:var(--fg);margin-bottom:.5rem}
+.feature-desc{font-size:.9rem;color:var(--muted-fg);line-height:1.65}
+
+/* DARK SECTION */
+.dark-section{background:var(--fg);color:#fff;padding:6rem 2rem;position:relative;overflow:hidden}
+.dark-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,1) 1px,transparent 1px);background-size:32px 32px;opacity:.03}
+.dark-section::after{content:'';position:absolute;top:-150px;right:-150px;width:400px;height:400px;border-radius:50%;background:var(--accent);filter:blur(150px);opacity:.06}
+.dark-section .section-headline{color:#fff}
+.dark-section .section-sub{color:rgba(255,255,255,.65)}
+.dark-section .section-badge{border-color:rgba(255,255,255,.15);background:rgba(255,255,255,.07)}
+.dark-section .badge-text{color:rgba(255,255,255,.7)}
+.dark-section .badge-dot{background:var(--accent2)}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1.5rem;margin-top:4rem}
+.stat-card{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:16px;padding:2rem;text-align:center;transition:all .3s}
+.stat-card:hover{background:rgba(255,255,255,.09);transform:translateY(-3px)}
+.stat-num{font-family:'Calistoga',Georgia,serif;font-size:2.75rem;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1;margin-bottom:.5rem}
+.stat-label{font-size:.9rem;color:rgba(255,255,255,.6);font-weight:500}
+
+/* HOW IT WORKS */
+.steps{display:flex;gap:2rem;margin-top:4rem;position:relative}
+.steps::before{content:'';position:absolute;top:40px;left:60px;right:60px;height:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));opacity:.2}
+.step{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;position:relative}
+.step-num{width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-family:'Calistoga',Georgia,serif;font-size:1.4rem;display:flex;align-items:center;justify-content:center;margin-bottom:1.25rem;box-shadow:var(--shadow-accent);position:relative;z-index:1}
+.step-connector{position:absolute;top:28px;left:calc(50% + 28px);width:calc(100% - 56px);height:2px;background:linear-gradient(90deg,rgba(0,82,255,.3),rgba(77,124,255,.15))}
+.step:last-child .step-connector{display:none}
+.step-title{font-size:1rem;font-weight:600;color:var(--fg);margin-bottom:.5rem}
+.step-desc{font-size:.875rem;color:var(--muted-fg);line-height:1.65;max-width:200px}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:4rem;align-items:center}
+.price-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;transition:all .3s}
+.price-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-3px)}
+.price-card.featured{background:var(--card);border:none;padding:2.25rem;transform:scale(1.04);position:relative}
+.price-card.featured:hover{transform:scale(1.04) translateY(-3px)}
+.featured-wrap{border-radius:18px;background:linear-gradient(135deg,var(--accent),var(--accent2));padding:2px;box-shadow:var(--shadow-accent-lg)}
+.featured-inner{background:var(--card);border-radius:16px;padding:2rem}
+.price-badge{display:inline-block;padding:.25rem .75rem;border-radius:999px;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:1rem}
+.price-tier{font-size:1.1rem;font-weight:700;color:var(--fg);margin-bottom:.25rem}
+.price-desc{font-size:.85rem;color:var(--muted-fg);margin-bottom:1.5rem}
+.price-amount{font-family:'Calistoga',Georgia,serif;font-size:3rem;color:var(--fg);line-height:1}
+.price-period{font-size:.9rem;color:var(--muted-fg);font-weight:400}
+.price-features{list-style:none;margin:1.5rem 0 2rem}
+.price-features li{display:flex;align-items:center;gap:.75rem;font-size:.875rem;color:var(--muted-fg);padding:.4rem 0}
+.price-check{width:18px;height:18px;border-radius:50%;background:rgba(0,82,255,.1);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.price-check::after{content:'✓';font-size:.65rem;color:var(--accent);font-weight:700}
+.btn-price{width:100%;padding:.875rem;border-radius:12px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-price.outline{background:transparent;border:1px solid var(--border);color:var(--fg)}
+.btn-price.outline:hover{border-color:rgba(0,82,255,.3);background:var(--muted);transform:translateY(-1px)}
+.btn-price.filled{border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;box-shadow:var(--shadow-accent)}
+.btn-price.filled:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:var(--shadow-accent-lg)}
+
+/* CTA SECTION */
+.cta-section{background:var(--fg);padding:7rem 2rem;text-align:center;position:relative;overflow:hidden}
+.cta-section::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,rgba(255,255,255,1) 1px,transparent 1px);background-size:32px 32px;opacity:.03}
+.cta-section .section-headline{color:#fff}
+.cta-section .section-sub{color:rgba(255,255,255,.6)}
+.cta-btns{display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;margin-top:2.5rem}
+.btn-cta-primary{padding:1rem 2.25rem;border-radius:12px;border:none;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;box-shadow:var(--shadow-accent);transition:all .2s}
+.btn-cta-primary:hover{transform:translateY(-2px);box-shadow:var(--shadow-accent-lg);filter:brightness(1.1)}
+.btn-cta-outline{padding:1rem 2.25rem;border-radius:12px;border:1px solid rgba(255,255,255,.2);background:transparent;color:#fff;font-size:1rem;font-weight:500;cursor:pointer;font-family:inherit;transition:all .2s}
+.btn-cta-outline:hover{background:rgba(255,255,255,.08);transform:translateY(-1px)}
+.glow-orb{position:absolute;border-radius:50%;filter:blur(120px);pointer-events:none}
+
+/* FOOTER */
+footer{background:var(--fg);border-top:1px solid rgba(255,255,255,.07);padding:2rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:gap;gap:1rem}
+.footer-brand{font-size:.875rem;color:rgba(255,255,255,.4)}
+.footer-links{display:flex;gap:1.5rem}
+.footer-links a{color:rgba(255,255,255,.4);text-decoration:none;font-size:.875rem;transition:color .2s}
+.footer-links a:hover{color:rgba(255,255,255,.8)}
+
+/* SCROLL ANIMATIONS */
+.reveal{opacity:0;transform:translateY(28px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+.reveal.visible{opacity:1;transform:translateY(0)}
+.reveal-delay-1{transition-delay:.1s}.reveal-delay-2{transition-delay:.2s}.reveal-delay-3{transition-delay:.3s}
+
+@media(max-width:768px){
+  .hero{flex-direction:column;padding:80px 1.5rem 60px;gap:3rem}
+  .hero-right{display:none}
+  .steps{flex-direction:column;align-items:center}
+  .steps::before{display:none}
+  .step-connector{display:none}
+  nav .nav-links{display:none}
+  .logos{gap:1.5rem}
+}
+
+a{
+  text-decoration:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav id="navbar">
+  <a href="#" class="nav-logo">
+    <div class="nav-logo-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+    VaultDB
+  </a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#why">Solutions</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <div class="nav-actions">
+    <a href="signin.html" class="btn-outline">Login</a>
+    <a href="signup.html" class="btn-primary">Sign Up</a>
+  </div>
+</nav>
+
+
+<!-- HERO -->
+<section style="min-height:100vh;display:flex;align-items:center;padding-top:64px">
+  <div class="hero">
+    <div class="hero-left reveal">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span class="badge-text">Trusted Backup Infrastructure</span>
+      </div>
+      <h1 class="hero-headline">
+        Never Lose<br><span class="grad">Critical Data</span><br>Again.
+      </h1>
+      <p class="hero-sub">VaultDB automates backups, secures databases, and enables instant recovery — so your business stays online, protected, and operational 24/7.</p>
+     <div class="hero-ctas">
+  <a href="signup.html" class="btn-hero-primary">
+    Get Started Free
+  </a>
+
+  <a href="signin.html" class="btn-hero-outline">Login</a>
+</div>
+      <div class="hero-trust">
+        <div class="trust-item"><span class="trust-check"></span> No setup complexity</div>
+        <div class="trust-item"><span class="trust-check"></span> Secure by default</div>
+        <div class="trust-item"><span class="trust-check"></span> Ready in minutes</div>
+      </div>
+    </div>
+    <div class="hero-right">
+      <div class="dashboard reveal reveal-delay-2">
+        <div class="dash-header">
+          <span class="dash-title">Backup Overview</span>
+          <span class="status-live"><span class="live-dot"></span> All Systems Operational</span>
+        </div>
+        <div class="dash-chart">
+          <div class="chart-label">Last 14 backups</div>
+          <div class="chart-bars" id="chartBars"></div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-label">Storage Used</div>
+            <div class="dash-card-value accent">2.4 TB</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Success Rate</div>
+            <div class="dash-card-value accent">99.9%</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Next Backup</div>
+            <div class="dash-card-value" style="font-size:.9rem">in 23 min</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-label">Databases</div>
+            <div class="dash-card-value">12 Active</div>
+          </div>
+        </div>
+        <button class="dash-restore">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          Restore Now
+        </button>
+        <div class="security-badge">
+          <div class="sec-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          256-bit AES Encrypted
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUSTED BY -->
+<div class="trusted">
+  <div class="trusted-label">Trusted by startups, agencies, and enterprises that cannot afford downtime</div>
+  <div class="logos">
+    <div class="logo-item">AXIOMTECH</div>
+    <div class="logo-item">CLOUDNEST</div>
+    <div class="logo-item">DATAFORGE</div>
+    <div class="logo-item">NEXAFLOW</div>
+    <div class="logo-item">STACKPULSE</div>
+    <div class="logo-item">ORBITBASE</div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="section" id="features">
+  <div class="text-center reveal">
+    <div class="section-badge" style="margin:0 auto 1.5rem">
+      <span class="badge-dot"></span>
+      <span class="badge-text">Features</span>
+    </div>
+    <h2 class="section-headline">Everything You Need to<br><span class="grad">Protect Your Databases</span></h2>
+    <p class="section-sub mx-auto">Built for engineering teams who take reliability seriously. Every feature designed with enterprise-grade precision.</p>
+  </div>
+  <div class="features-grid">
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="feature-title">Automated Scheduling</div>
+      <div class="feature-desc">Run backups hourly, daily, weekly, or on custom cron schedules. Set it once and never worry again.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      </div>
+      <div class="feature-title">Instant Restore</div>
+      <div class="feature-desc">Recover any database in one click with minimal downtime. Point-in-time recovery for surgical precision.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="feature-title">Encrypted Storage</div>
+      <div class="feature-desc">AES-256 encrypted backups at rest and in transit. Zero-knowledge architecture keeps your data truly private.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-1">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="feature-title">Real-Time Monitoring</div>
+      <div class="feature-desc">Track success rates, failures, backup health, and storage usage from a unified dashboard in real time.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-2">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><polygon points="22 12 2 2 7 12 2 22 22 12"/></svg>
+      </div>
+      <div class="feature-title">Cloud & Local Support</div>
+      <div class="feature-desc">Store backups across AWS S3, GCP, Azure, or on-premise systems. Full flexibility for any infrastructure stack.</div>
+    </div>
+    <div class="feature-card reveal reveal-delay-3">
+      <div class="feature-icon">
+        <svg viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      </div>
+      <div class="feature-title">Smart Alerts</div>
+      <div class="feature-desc">Instant email and dashboard alerts for every backup event — successes, failures, anomalies, and storage warnings.</div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY VAULTDB (DARK) -->
+<div class="dark-section" id="why">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="text-center reveal">
+      <div class="section-badge" style="margin:0 auto 1.5rem">
+        <span class="badge-dot"></span>
+        <span class="badge-text">Why VaultDB</span>
+      </div>
+      <h2 class="section-headline">Because Downtime Is <span class="grad">Expensive.</span></h2>
+      <p class="section-sub mx-auto" style="color:rgba(255,255,255,.6)">Every minute of data loss can cost thousands. VaultDB gives you the infrastructure reliability that enterprise companies rely on.</p>
+    </div>
+    <div class="stats-grid reveal">
+      <div class="stat-card"><div class="stat-num">99.99%</div><div class="stat-label">Backup Reliability</div></div>
+      <div class="stat-card"><div class="stat-num">70%</div><div class="stat-label">Faster Recovery</div></div>
+      <div class="stat-card"><div class="stat-num">256-bit</div><div class="stat-label">AES Encryption</div></div>
+      <div class="stat-card"><div class="stat-num">24/7</div><div class="stat-label">Active Monitoring</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section class="section">
+  <div class="text-center reveal">
+    <div class="section-badge" style="margin:0 auto 1.5rem">
+      <span class="badge-dot"></span>
+      <span class="badge-text">How It Works</span>
+    </div>
+    <h2 class="section-headline">Up and Running in <span class="grad">3 Simple Steps</span></h2>
+    <p class="section-sub mx-auto">No complex configuration. No DevOps expertise required. Just connect, configure, and rest easy.</p>
+  </div>
+  <div class="steps reveal">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-connector"></div>
+      <div class="step-title">Connect Database</div>
+      <div class="step-desc">Connect any PostgreSQL, MySQL, MongoDB, or Redis database in under 60 seconds.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-connector"></div>
+      <div class="step-title">Automate Backups</div>
+      <div class="step-desc">Set your backup schedule and retention policies. VaultDB handles everything automatically.</div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-title">Restore Anytime</div>
+      <div class="step-desc">One-click restore to any point in time. Your data, exactly when and where you need it.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="section" id="pricing" style="background:var(--muted);max-width:none;padding:6rem 2rem">
+  <div style="max-width:1200px;margin:0 auto">
+    <div class="text-center reveal">
+      <div class="section-badge" style="margin:0 auto 1.5rem">
+        <span class="badge-dot"></span>
+        <span class="badge-text">Pricing</span>
+      </div>
+      <h2 class="section-headline">Simple Pricing for <span class="grad">Every Scale</span></h2>
+      <p class="section-sub mx-auto">No hidden fees, no surprise charges. Pick the plan that fits your team and upgrade as you grow.</p>
+    </div>
+    <div class="pricing-grid reveal" style="margin-top:4rem;align-items:start">
+      <div class="price-card">
+        <div class="price-tier">Starter</div>
+        <div class="price-desc">For personal projects & small teams</div>
+        <div class="price-amount">$29<span class="price-period">/mo</span></div>
+        <ul class="price-features">
+          <li><span class="price-check"></span>Up to 5 databases</li>
+          <li><span class="price-check"></span>Daily backups</li>
+          <li><span class="price-check"></span>100 GB storage</li>
+          <li><span class="price-check"></span>7-day retention</li>
+          <li><span class="price-check"></span>Email alerts</li>
+        </ul>
+        <a href="signup.html" class="btn-price outline">Get Started</a>
+      </div>
+      <div class="featured-wrap">
+        <div class="featured-inner">
+          <div class="price-badge">Most Popular</div>
+          <div class="price-tier">Professional</div>
+          <div class="price-desc">For growing businesses</div>
+          <div class="price-amount" style="background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent">$99<span style="color:var(--muted-fg);background:none;-webkit-background-clip:initial;background-clip:initial;font-size:.9rem;font-weight:400">/mo</span></div>
+          <ul class="price-features">
+            <li><span class="price-check"></span>Up to 25 databases</li>
+            <li><span class="price-check"></span>Hourly backups</li>
+            <li><span class="price-check"></span>1 TB storage</li>
+            <li><span class="price-check"></span>30-day retention</li>
+            <li><span class="price-check"></span>Smart alerts & monitoring</li>
+            <li><span class="price-check"></span>Point-in-time recovery</li>
+          </ul>
+          <a href="signup.html" class="btn-price filled">Get Started</a>
+        </div>
+      </div>
+      <div class="price-card">
+        <div class="price-tier">Enterprise</div>
+        <div class="price-desc">For organizations needing custom scale</div>
+        <div class="price-amount">Custom<span class="price-period"></span></div>
+        <ul class="price-features">
+          <li><span class="price-check"></span>Unlimited databases</li>
+          <li><span class="price-check"></span>Continuous backups</li>
+          <li><span class="price-check"></span>Unlimited storage</li>
+          <li><span class="price-check"></span>90-day+ retention</li>
+          <li><span class="price-check"></span>SSO & SAML</li>
+          <li><span class="price-check"></span>Dedicated support</li>
+        </ul>
+        <button class="btn-price outline">Contact Sales</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<div class="cta-section" id="contact">
+  <div class="glow-orb" style="top:-100px;left:-100px;width:400px;height:400px;background:var(--accent);opacity:.04"></div>
+  <div class="glow-orb" style="bottom:-100px;right:-100px;width:400px;height:400px;background:var(--accent2);opacity:.04"></div>
+  <div style="position:relative;z-index:1;max-width:640px;margin:0 auto" class="reveal">
+    <h2 class="section-headline" style="font-family:'Calistoga',Georgia,serif;font-size:clamp(2rem,4vw,3.5rem);color:#fff;margin-bottom:1rem">Secure Your Data<br><span class="grad">Before It's Too Late.</span></h2>
+    <p class="section-sub mx-auto" style="color:rgba(255,255,255,.6)">Join thousands of businesses using VaultDB to keep operations running without interruption.</p>
+   <div class="cta-btns">
+  <a href="signin.html" class="btn-cta-outline">Login</a>
+  <a href="signup.html" class="btn-cta-primary">Sign Up Free →</a>
+</div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">© 2026 VaultDB. All rights reserved.</div>
+  <div class="footer-links">
+    <a href="#">Privacy</a>
+    <a href="#">Terms</a>
+    <a href="#">Support</a>
+    <a href="#">Contact</a>
+  </div>
+</footer>
+
+<script>
+// Chart bars
+const bars = document.getElementById('chartBars');
+const heights = [85,90,95,88,100,92,78,96,100,85,93,88,100,95];
+const types = ['success','success','success','success','success','success','warn','success','success','success','success','success','success','success'];
+heights.forEach((h,i)=>{
+  const b=document.createElement('div');
+  b.className='bar '+types[i];
+  b.style.height=h*0.6+'%';
+  bars.appendChild(b);
+});
+
+// Scroll navbar
+window.addEventListener('scroll',()=>{
+  document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>20);
+});
+
+// Reveal on scroll
+const observer=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
+},{threshold:.1,rootMargin:'-40px'});
+document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+</script>
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sign Up — VaultDB</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap"
+        rel="stylesheet" />
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #f4f5f7;
+            --surface: #ffffff;
+            --border: #e2e5eb;
+            --border-focus: #4f6ef7;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --accent: #4f6ef7;
+            --accent-dark: #3b56e0;
+            --accent-light: #eef1fe;
+            --error: #ef4444;
+            --error-bg: #fff5f5;
+            --success: #10b981;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, .06), 0 1px 2px rgba(0, 0, 0, .04);
+            --shadow-md: 0 4px 24px rgba(0, 0, 0, .07), 0 1px 4px rgba(0, 0, 0, .04);
+            --shadow-lg: 0 12px 48px rgba(0, 0, 0, .1), 0 4px 12px rgba(0, 0, 0, .05);
+            --radius: 11px;
+            --radius-sm: 7px;
+            --transition: .18s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: .45;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            width: 520px;
+            height: 520px;
+            background: radial-gradient(circle, #c7d2fe 0%, transparent 70%);
+            top: -120px;
+            right: -100px;
+        }
+
+        body::after {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, #bfdbfe 0%, transparent 70%);
+            bottom: -80px;
+            left: -80px;
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 980px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+            min-height: 680px;
+        }
+
+        /* LEFT PANEL */
+        .panel-left {
+            background: linear-gradient(145deg, #3d5af1 0%, #6674f4 50%, #8b9cf8 100%);
+            padding: 52px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .panel-left::before {
+            content: '';
+            position: absolute;
+            width: 360px;
+            height: 360px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, .14);
+            top: -80px;
+            right: -100px;
+        }
+
+        .panel-left::after {
+            content: '';
+            position: absolute;
+            width: 220px;
+            height: 220px;
+            border-radius: 50%;
+            border: 1.5px solid rgba(255, 255, 255, .1);
+            bottom: 30px;
+            left: -60px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, .22);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(4px);
+        }
+
+        .brand-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .brand-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: -.01em;
+        }
+
+        .panel-copy {
+            position: relative;
+            z-index: 1;
+        }
+
+        .panel-copy h2 {
+            font-family: 'Instrument Serif', serif;
+            font-size: clamp(26px, 3vw, 34px);
+            font-weight: 400;
+            color: #fff;
+            line-height: 1.25;
+            margin-bottom: 16px;
+        }
+
+        .panel-copy h2 em {
+            font-style: italic;
+            opacity: .85;
+        }
+
+        .panel-copy p {
+            font-size: 14px;
+            color: rgba(255, 255, 255, .72);
+            line-height: 1.65;
+            max-width: 280px;
+        }
+
+        .features {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .feature-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255, 255, 255, .12);
+            backdrop-filter: blur(6px);
+            border: 1px solid rgba(255, 255, 255, .18);
+            border-radius: 40px;
+            padding: 9px 14px;
+            width: fit-content;
+        }
+
+        .feature-pill .dot {
+            width: 7px;
+            height: 7px;
+            background: #a5f3c8;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .feature-pill span {
+            font-size: 13px;
+            color: rgba(255, 255, 255, .88);
+            font-weight: 400;
+        }
+
+        .illustration {
+            position: absolute;
+            bottom: 80px;
+            right: -20px;
+            width: 200px;
+            opacity: .18;
+        }
+
+        /* RIGHT PANEL */
+        .panel-right {
+            padding: 52px 44px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            overflow-y: auto;
+        }
+
+        .form-header {
+            margin-bottom: 32px;
+        }
+
+        .form-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -.02em;
+            margin-bottom: 6px;
+        }
+
+        .form-header p {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .form {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .field label {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            letter-spacing: .005em;
+        }
+
+        .field label .req {
+            color: var(--accent);
+            margin-left: 2px;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap input {
+            width: 100%;
+            height: 42px;
+            padding: 0 14px;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            color: var(--text-primary);
+            background: var(--surface);
+            outline: none;
+            transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+            appearance: none;
+        }
+
+        .input-wrap input:focus {
+            border-color: var(--border-focus);
+            box-shadow: 0 0 0 3px rgba(79, 110, 247, .12);
+        }
+
+        .input-wrap input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-wrap input.has-error {
+            border-color: var(--error);
+            background: var(--error-bg);
+        }
+
+        .input-wrap input.has-error:focus {
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, .1);
+        }
+
+        .input-wrap .toggle-pw {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            border-radius: 4px;
+            transition: color var(--transition);
+        }
+
+        .input-wrap .toggle-pw:hover {
+            color: var(--text-secondary);
+        }
+
+        .input-wrap input.pw-field {
+            padding-right: 42px;
+        }
+
+        .error-msg {
+            font-size: 12px;
+            color: var(--error);
+            display: none;
+            align-items: center;
+            gap: 4px;
+            margin-top: -2px;
+        }
+
+        .error-msg.show {
+            display: flex;
+        }
+
+        .error-msg svg {
+            width: 12px;
+            height: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Password strength */
+        .strength-bar {
+            display: flex;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .strength-seg {
+            height: 3px;
+            flex: 1;
+            border-radius: 4px;
+            background: var(--border);
+            transition: background .25s;
+        }
+
+        .strength-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 3px;
+        }
+
+        /* CTA button */
+        .btn-primary {
+            height: 44px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background var(--transition), box-shadow var(--transition), transform var(--transition);
+            letter-spacing: .01em;
+            margin-top: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-dark);
+            box-shadow: 0 4px 16px rgba(79, 110, 247, .35);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .btn-primary:disabled {
+            opacity: .72;
+            cursor: not-allowed;
+        }
+
+        .spinner {
+            width: 17px;
+            height: 17px;
+            border: 2px solid rgba(255, 255, 255, .35);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin .7s linear infinite;
+            display: none;
+        }
+
+        .btn-primary.loading .spinner {
+            display: block;
+        }
+
+        .btn-primary.loading .btn-text {
+            display: none;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .signin-link {
+            text-align: center;
+            font-size: 13.5px;
+            color: var(--text-secondary);
+            margin-top: 18px;
+        }
+
+        .signin-link a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color var(--transition);
+        }
+
+        .signin-link a:hover {
+            color: var(--accent-dark);
+            text-decoration: underline;
+        }
+
+        /* Success overlay */
+        .success-overlay {
+            position: absolute;
+            inset: 0;
+            background: var(--surface);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .4s ease;
+            z-index: 10;
+            border-radius: 16px;
+        }
+
+        .success-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .success-icon {
+            width: 64px;
+            height: 64px;
+            background: #d1fae5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .success-icon svg {
+            width: 30px;
+            height: 30px;
+            color: var(--success);
+        }
+
+        .success-overlay h2 {
+            font-size: 22px;
+            font-weight: 600;
+            color: var(--text-primary);
+            letter-spacing: -.02em;
+        }
+
+        .success-overlay p {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        /* Responsive */
+        @media (max-width: 700px) {
+            body {
+                padding: 16px;
+                align-items: flex-start;
+            }
+
+            .page {
+                grid-template-columns: 1fr;
+                min-height: unset;
+                border-radius: var(--radius);
+            }
+
+            .panel-left {
+                display: none;
+            }
+
+            .panel-right {
+                padding: 36px 24px 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="page" id="page">
+
+        <!-- LEFT PANEL -->
+        <div class="panel-left">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="white"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                </div>
+                <span class="brand-name">DB Backup</span>
+            </div>
+
+            <div class="panel-copy">
+                <h2>Database backup,<br><em>made secure & automated.</em></h2>
+                <p>Manage, schedule, and restore your databases effortlessly with secure cloud backups and automation in
+                    one platform.
+                </p>
+            </div>
+
+            <div class="features">
+                <div class="feature-pill">
+                    <div class="dot"></div><span>Automated scheduled backups</span>
+                </div>
+                <div class="feature-pill">
+                    <div class="dot"></div><span>Incremental & full backup support</span>
+                </div>
+                <div class="feature-pill">
+                    <div class="dot"></div><span>Encryption & secure cloud storage</span>
+                </div>
+            </div>
+
+            <svg class="illustration" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="100" cy="100" r="80" fill="none" stroke="white" stroke-width="1" />
+                <circle cx="100" cy="100" r="55" fill="none" stroke="white" stroke-width="1" />
+                <circle cx="100" cy="100" r="30" fill="none" stroke="white" stroke-width="1" />
+                <line x1="20" y1="100" x2="180" y2="100" stroke="white" stroke-width="1" />
+                <line x1="100" y1="20" x2="100" y2="180" stroke="white" stroke-width="1" />
+                <line x1="43" y1="43" x2="157" y2="157" stroke="white" stroke-width=".6" />
+                <line x1="157" y1="43" x2="43" y2="157" stroke="white" stroke-width=".6" />
+            </svg>
+        </div>
+
+        <!-- RIGHT PANEL -->
+        <div class="panel-right">
+            <div class="form-header">
+                <h1>Create your account</h1>
+
+            </div>
+
+            <form class="form" id="signupForm" novalidate>
+
+                <!-- Full Name -->
+                <div class="field">
+                    <label for="fullName">Full Name <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="text" id="fullName" placeholder="Jane Doe" autocomplete="name" />
+                    </div>
+                    <span class="error-msg" id="err-fullName">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Full name is required.
+                    </span>
+                </div>
+
+                <!-- Email -->
+                <div class="field">
+                    <label for="email">Email Address <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="email" id="email" placeholder="jane@company.com" autocomplete="email" />
+                    </div>
+                    <span class="error-msg" id="err-email">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Enter a valid email address.
+                    </span>
+                </div>
+
+                <!-- Password -->
+                <div class="field">
+                    <label for="password">Password <span class="req">*</span></label>
+                    <div class="input-wrap">
+                        <input type="password" id="password" class="pw-field" placeholder="Min. 8 characters"
+                            autocomplete="new-password" />
+                        <button type="button" class="toggle-pw" data-target="password"
+                            aria-label="Toggle password visibility">
+                            <svg id="eye-password" viewBox="0 0 24 24" width="16" height="16" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                                <circle cx="12" cy="12" r="3" />
+                            </svg>
+                        </button>
+                    </div>
+                    <!-- ✅ FIX: Strength bar now inside the password field div, with correct IDs -->
+                    <div class="strength-bar">
+                        <div class="strength-seg" id="s1"></div>
+                        <div class="strength-seg" id="s2"></div>
+                        <div class="strength-seg" id="s3"></div>
+                        <div class="strength-seg" id="s4"></div>
+                    </div>
+                    <span class="strength-label" id="strengthLabel"></span>
+                    <span class="error-msg" id="err-password">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="12" y1="8" x2="12" y2="12" />
+                            <line x1="12" y1="16" x2="12.01" y2="16" />
+                        </svg>
+                        Password must be at least 8 characters.
+                    </span>
+                </div>
+
+                <!-- Submit -->
+                <button type="submit" class="btn-primary" id="submitBtn">
+                    <span class="btn-text">Create Account</span>
+                    <div class="spinner"></div>
+                </button>
+
+            </form>
+
+            <p class="signin-link">Already have an account? <a href="signin.html">Sign In</a></p>
+        </div>
+
+        <!-- Success overlay -->
+        <div class="success-overlay" id="successOverlay">
+            <div class="success-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                </svg>
+            </div>
+            <h2>Account created!</h2>
+            <p>Welcome aboard. Redirecting you now…</p>
+        </div>
+
+    </div>
+
+    <script>
+const API_BASE = "https://api.vaultdb.live";
+
+// ---------------- Password Strength ----------------
+const strengthColors = ['#ef4444', '#f97316', '#eab308', '#10b981'];
+const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
+
+document.getElementById('password').addEventListener('input', function () {
+    const v = this.value;
+    let score = 0;
+
+    if (v.length >= 8) score++;
+    if (/[A-Z]/.test(v) && /[a-z]/.test(v)) score++;
+    if (/\d/.test(v)) score++;
+    if (/[^A-Za-z0-9]/.test(v)) score++;
+
+    for (let i = 1; i <= 4; i++) {
+        document.getElementById('s' + i).style.background =
+            i <= score ? strengthColors[score - 1] : 'var(--border)';
+    }
+
+    const label = document.getElementById('strengthLabel');
+    label.textContent = v ? (strengthLabels[score - 1] || '') : '';
+    label.style.color = v ? strengthColors[score - 1] : 'var(--text-muted)';
+});
+
+// ---------------- Helpers ----------------
+function showError(id, msg) {
+    const input = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+
+    if (input) input.classList.add('has-error');
+
+    if (err) {
+        err.classList.add('show');
+        err.lastChild.textContent = " " + msg;
+    }
+}
+
+function clearError(id) {
+    const input = document.getElementById(id);
+    const err = document.getElementById('err-' + id);
+
+    if (input) input.classList.remove('has-error');
+    if (err) err.classList.remove('show');
+}
+
+['fullName', 'email', 'password'].forEach(id => {
+    document.getElementById(id).addEventListener('input', () => clearError(id));
+});
+
+// ---------------- OTP Popup ----------------
+function showOtpPopup(email) {
+    const popup = document.createElement("div");
+
+    popup.innerHTML = `
+        <div id="otpModal" style="
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,.45);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:9999;
+        ">
+            <div style="
+                width:100%;
+                max-width:420px;
+                background:#fff;
+                border-radius:14px;
+                padding:28px;
+                box-shadow:0 20px 60px rgba(0,0,0,.15);
+                font-family:DM Sans,sans-serif;
+            ">
+                <h2 style="font-size:24px;margin-bottom:8px;">Verify OTP</h2>
+                <p style="font-size:14px;color:#6b7280;margin-bottom:20px;">
+                    Enter the OTP sent to <b>${email}</b>
+                </p>
+
+                <input
+                    type="text"
+                    id="otpInput"
+                    maxlength="6"
+                    placeholder="Enter 6 digit OTP"
+                    style="
+                        width:100%;
+                        height:44px;
+                        padding:0 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:8px;
+                        font-size:15px;
+                        margin-bottom:14px;
+                    "
+                >
+
+                <button
+                    id="verifyOtpBtn"
+                    style="
+                        width:100%;
+                        height:44px;
+                        border:none;
+                        border-radius:8px;
+                        background:#4f6ef7;
+                        color:#fff;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    Verify & Create Account
+                </button>
+
+                <p id="otpMsg" style="
+                    margin-top:12px;
+                    font-size:13px;
+                    text-align:center;
+                    color:#ef4444;
+                "></p>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(popup);
+
+    document.getElementById("verifyOtpBtn").onclick = async () => {
+        const otp = document.getElementById("otpInput").value.trim();
+        const msg = document.getElementById("otpMsg");
+
+        if (otp.length !== 6) {
+            msg.textContent = "Enter valid 6 digit OTP";
+            return;
+        }
+
+        try {
+            const res = await fetch(API_BASE + "/auth/verify-registration-otp", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    email: email,
+                    otp: otp
+                })
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+                msg.textContent = data.detail || "Invalid OTP";
+                return;
+            }
+
+            // Save token if returned
+            if (data.access_token) {
+                localStorage.setItem("token", data.access_token);
+            }
+
+            msg.style.color = "#10b981";
+            msg.textContent = "Account verified successfully!";
+
+            setTimeout(() => {
+                window.location.href = "signin.html";
+            }, 1200);
+
+        } catch (err) {
+            msg.textContent = "Verification failed";
+        }
+    };
+}
+
+// ---------------- Signup Submit ----------------
+document.getElementById("signupForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+
+    let valid = true;
+
+    const fullName = document.getElementById("fullName").value.trim();
+    const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+
+    if (!fullName) {
+        showError("fullName", "Full name is required.");
+        valid = false;
+    }
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        showError("email", "Enter valid email.");
+        valid = false;
+    }
+
+    if (password.length < 8) {
+        showError("password", "Minimum 8 characters.");
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    const btn = document.getElementById("submitBtn");
+    btn.disabled = true;
+    btn.classList.add("loading");
+
+    try {
+        const res = await fetch(API_BASE + "/auth/register", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password,
+                name: fullName
+            })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+            alert(data.detail || "Registration failed");
+            return;
+        }
+
+        // OTP popup open
+        showOtpPopup(email);
+
+    } catch (err) {
+        alert("Server error");
+    } finally {
+        btn.disabled = false;
+        btn.classList.remove("loading");
+    }
+});
+</script>
+</body>
+
+</html>
