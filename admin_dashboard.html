@@ -5239,13 +5239,12 @@ function formatDuration(seconds) {
 }
 async function deleteBackup(id) {
 
-    if (!confirm("Delete this backup permanently?")) {
-        return;
-    }
+    if (!confirm("Delete this backup permanently?")) return;
 
     try {
+
         const response = await fetch(
-            API_BASE + "/admin/backups/" + id + "?delete_file=true",
+            API_BASE + "/admin/backups/" + id,
             {
                 method: "DELETE",
                 headers: getHeaders()
@@ -5258,8 +5257,9 @@ async function deleteBackup(id) {
 
         alert("Backup deleted successfully");
 
-        loadRecentBackups();
-        loadBackups?.();
+        if (typeof loadRecentBackups === "function") {
+            loadRecentBackups();
+        }
 
     } catch (error) {
         console.error(error);
