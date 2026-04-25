@@ -5637,9 +5637,7 @@ function updateStepper() {
     }
 }
 
-/* =========================
-   STEP 1 DATABASE
-========================= */
+
 /* =========================
    STEP 1 DATABASE
 ========================= */
@@ -5702,80 +5700,6 @@ async function renderDatabaseStep() {
     }
 }
 
-/* =========================
-   STEP 2 BACKUPS
-========================= */
-// async function renderBackupStep() {
-//     const box = document.getElementById("restoreStepContent");
-//     if (!box) return;
-
-//     box.innerHTML = `
-//         <div class="restore-step-title">Select Backup</div>
-//         <div class="restore-step-desc">Choose backup to restore</div>
-
-//         <label class="restore-db-label">Backup</label>
-
-//         <select id="restoreBackupSelect" class="restore-db-select">
-//             <option value="">Choose backup</option>
-//         </select>
-//     `;
-
-//     try {
-//         const res = await fetch(
-//             API_BASE + "/admin/backups?limit=100&offset=0",
-//             { headers: getHeaders() }
-//         );
-
-//         const data = await res.json();
-
-//         const list = data.items || data.data || data.results || data || [];
-
-//         const select = document.getElementById("restoreBackupSelect");
-
-//         select.innerHTML = `<option value="">Choose backup</option>`;
-
-//         list.forEach((backup, index) => {
-
-//             const backupId =
-//                 backup.document_id ||
-//                 backup.id ||
-//                 backup._id ||
-//                 index + 1;
-
-//             const dbId =
-//                 backup.database_id ||
-//                 backup.db_id ||
-//                 "";
-
-//             /* only selected database backups */
-//             if (selectedDatabaseId && dbId != selectedDatabaseId) return;
-
-//             const fileName =
-//                 backup.file_name ||
-//                 backup.backup_name ||
-//                 backup.name ||
-//                 `Backup ${index + 1}`;
-
-//             const created =
-//                 backup.created_at ||
-//                 backup.date ||
-//                 "";
-
-//             select.innerHTML += `
-//                 <option value="${backupId}">
-//                     ${fileName} ${created ? "- " + created : ""}
-//                 </option>
-//             `;
-//         });
-
-//     } catch (error) {
-//         box.innerHTML = `
-//             <div class="restore-empty">
-//                 Failed to load backups
-//             </div>
-//         `;
-//     }
-// }   
 async function renderBackupStep() {
     const box = document.getElementById("restoreStepContent");
     if (!box) return;
@@ -5822,19 +5746,22 @@ async function renderBackupStep() {
                 index + 1;
 
             const linkedDbId =
-                backup.database_id ||
-                backup.db_id ||
-                backup.database_document_id ||
-                backup.db_document_id ||
-                backup.databaseId ||
-                backup.document_database_id ||
-                (backup.database ? backup.database.document_id : "") ||
-                (backup.database ? backup.database.id : "");
+    backup.database?.document_id ||
+    backup.database?.id ||
+    backup.database_id ||
+    backup.db_id ||
+    backup.database_document_id ||
+    backup.db_document_id ||
+    backup.databaseId ||
+    backup.document_database_id ||
+    "";
 
-            /* match selected database */
-            if (String(linkedDbId) !== String(selectedDatabaseId)) {
-                return;
-            }
+console.log("Selected DB:", selectedDatabaseId);
+console.log("Backup DB:", linkedDbId, backup);
+
+if (String(linkedDbId).trim() != String(selectedDatabaseId).trim()) {
+    return;
+}
 
             found++;
 
