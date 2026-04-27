@@ -4126,28 +4126,28 @@ function showPage(page) {
         document.querySelectorAll('#usersTableBody .db-action-btn.del').forEach(btn => btn.addEventListener('click', () => btn.closest('tr').remove()));
 
         // ── BACKUPS FILTER ──────────────────────────────────────────
-        function updateBkTable() {
-            const db = document.getElementById('bkFilterDb').value;
-            const st = document.getElementById('bkFilterStatus').value;
-            let count = 0;
-            document.querySelectorAll('#bkTableBody tr').forEach(row => {
-                const show = (!db || row.dataset.db === db) && (!st || row.dataset.status === st);
-                row.style.display = show ? '' : 'none';
-                if (show) count++;
-            });
-            document.getElementById('bkTableTitle').textContent = 'All Backups (' + count + ')';
-        }
-        document.getElementById('bkFilterDb').addEventListener('change', updateBkTable);
-        document.getElementById('bkFilterStatus').addEventListener('change', updateBkTable);
-        document.querySelectorAll('#bkTableBody .bk-action-btn.del').forEach(btn => btn.addEventListener('click', () => { btn.closest('tr').remove(); updateBkTable(); }));
-        document.getElementById('exportReportBtn').addEventListener('click', () => {
-            const rows = [...document.querySelectorAll('#bkTableBody tr')].filter(r => r.style.display !== 'none');
-            const csv = ['Backup ID,Database,Date,Size,Storage,Status', ...rows.map(r => {
-                const cells = r.querySelectorAll('td');
-                return [cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.trim(), cells[3].textContent.trim(), cells[4].textContent.trim(), cells[5].textContent.trim()].join(',');
-            })].join('\n');
-            const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'backups_report.csv'; a.click();
-        });
+        // function updateBkTable() {
+        //     const db = document.getElementById('bkFilterDb').value;
+        //     const st = document.getElementById('bkFilterStatus').value;
+        //     let count = 0;
+        //     document.querySelectorAll('#bkTableBody tr').forEach(row => {
+        //         const show = (!db || row.dataset.db === db) && (!st || row.dataset.status === st);
+        //         row.style.display = show ? '' : 'none';
+        //         if (show) count++;
+        //     });
+        //     document.getElementById('bkTableTitle').textContent = 'All Backups (' + count + ')';
+        // }
+        // document.getElementById('bkFilterDb').addEventListener('change', updateBkTable);
+        // document.getElementById('bkFilterStatus').addEventListener('change', updateBkTable);
+        // document.querySelectorAll('#bkTableBody .bk-action-btn.del').forEach(btn => btn.addEventListener('click', () => { btn.closest('tr').remove(); updateBkTable(); }));
+        // document.getElementById('exportReportBtn').addEventListener('click', () => {
+        //     const rows = [...document.querySelectorAll('#bkTableBody tr')].filter(r => r.style.display !== 'none');
+        //     const csv = ['Backup ID,Database,Date,Size,Storage,Status', ...rows.map(r => {
+        //         const cells = r.querySelectorAll('td');
+        //         return [cells[0].textContent.trim(), cells[1].textContent.trim(), cells[2].textContent.trim(), cells[3].textContent.trim(), cells[4].textContent.trim(), cells[5].textContent.trim()].join(',');
+        //     })].join('\n');
+        //     const a = document.createElement('a'); a.href = 'data:text/csv,' + encodeURIComponent(csv); a.download = 'backups_report.csv'; a.click();
+        // });
 
         // ── LOGS FILTER ─────────────────────────────────────────────
         function updateLogs() {
